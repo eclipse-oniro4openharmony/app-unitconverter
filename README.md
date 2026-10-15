@@ -15,7 +15,7 @@ Supported units: length (meter, kilometer, mile, foot, inch); weight (gram, kilo
 
 ## Preview
 
-![Unit Converter on an OpenHarmony phone, showing the category selector, conversion cards, and swap button](app_preview.jpg)
+![Unit Converter on an OpenHarmony phone, converting 23 degrees Celsius to 73.4 degrees Fahrenheit](app_preview.jpg)
 
 ## Requirements
 
