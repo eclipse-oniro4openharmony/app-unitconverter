@@ -5,39 +5,55 @@ import { MeasurementUnit } from '../pages/viewmodels/UnitConverterViewModel';
 
 @Component
 export struct UnitSelector {
-  caption: Resource | string = ''
-  @Prop units: Unit[] = []
-  @ObjectLink value: MeasurementUnit
+  caption: Resource = $r('app.string.from');
+  @Prop units: Unit[] = [];
+  @ObjectLink value: MeasurementUnit;
   onUnitChange?: () => void;
 
-  private resManager!: ResourceHelper;
+  private resManager?: ResourceHelper;
 
   aboutToAppear(): void {
-    this.resManager = new ResourceHelper(getContext(this));
+    const context = this.getUIContext().getHostContext();
+    if (context) {
+      this.resManager = new ResourceHelper(context);
+    }
   }
 
   getLabel(unit: Unit): string {
-    return this.resManager.getString(Object(unitLabels)[unit], unit);
+    return this.resManager?.getString(Object(unitLabels)[unit], unit) ?? unit;
   }
+
   getSelected(): number {
-    if (this.value) return this.units.indexOf(this.value.unit);
+    if (this.value) {
+      return this.units.indexOf(this.value.unit);
+    }
     return -1;
   }
 
   build() {
-    Row() {
+    Column() {
       Text(this.caption)
-        .fontSize(18)
-      Select(this.units.map<SelectOption>((val) => ({value: this.getLabel(val)})))
+        .fontSize(15)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(0x625A70)
+        .width('100%')
+        .margin({ bottom: 10 })
+      Select(this.units.map<SelectOption>((unit) => ({ value: this.getLabel(unit) })))
         .value(this.getLabel(this.value?.unit))
         .selected(this.getSelected())
+        .width('100%')
+        .height(52)
+        .font({ size: 18, weight: FontWeight.Medium })
+        .fontColor(0x0F0026)
+        .backgroundColor(0xF8F3FF)
+        .borderRadius(16)
+        .accessibilityDescription(this.caption)
         .onSelect((index: number) => {
           this.value.unit = this.units[index];
           this.onUnitChange?.();
-      })
-        .margin(10)
+        })
     }
     .width('100%')
-    .justifyContent(FlexAlign.Start)
+    .margin({ bottom: 16 })
   }
 }

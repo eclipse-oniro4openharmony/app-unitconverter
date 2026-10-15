@@ -10,8 +10,7 @@ export class ResourceHelper {
   getString(resource: Resource, defaultValue: string = ''): string {
     let result: string = defaultValue;
     try {
-      ;
-      result = this.resManager.getStringSync(resource);
+      result = this.resManager.getStringSync(resource.id);
     } catch (e) {
       console.error(`resourceManager.getStringSync failed, error code: ${e.code}, message: ${e.message}.`)
     }

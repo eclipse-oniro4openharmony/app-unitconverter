@@ -7,10 +7,13 @@ import { UnitConverterViewModel, ConversionError } from './viewmodels/UnitConver
 @Component
 struct Index {
   @State unitConverter: UnitConverterViewModel = new UnitConverterViewModel();
-  private resManager!: ResourceHelper;
+  private resManager?: ResourceHelper;
 
   aboutToAppear(): void {
-    this.resManager = new ResourceHelper(getContext());
+    const context = this.getUIContext().getHostContext();
+    if (context) {
+      this.resManager = new ResourceHelper(context);
+    }
   }
 
   getMeasureLabel(measure: string): Resource {
@@ -19,124 +22,135 @@ struct Index {
 
   getCurrentMeasureLabel(): string {
     const measure = this.unitConverter.getCurrentMeasure();
-    return this.resManager.getString(Object(measureLabels)[measure], measure);
+    return this.resManager?.getString(Object(measureLabels)[measure], measure) ?? measure;
   }
 
-  onValueChange(value: string) {
-      this.unitConverter.convertValue(value);
+  onValueChange(value: string): void {
+    this.unitConverter.convertValue(value);
   }
 
   build() {
-    Column() {
-      Row() {
-        Text($r('app.string.EntryAbility_label'))
-          .fontSize(28)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-      }
-      .width('100%')
-      .height(64)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(VerticalAlign.Center)
-      .backgroundColor(0x08205E)
-
+    Scroll() {
       Column() {
-        Row() {
+        Text($r('app.string.EntryAbility_label'))
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(INK)
+          .width('100%')
+          .margin({ bottom: 28 })
+
+        Column() {
           Text($r('app.string.measure'))
-            .fontSize(28)
-            .fontWeight(FontWeight.Bold)
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(SECONDARY_INK)
+            .width('100%')
+            .margin({ bottom: 10 })
           Select(this.unitConverter.getMeasures()
-            .map<SelectOption>((val) => ({ value: this.getMeasureLabel(val) }))
-          )
+            .map<SelectOption>((measure) => ({ value: this.getMeasureLabel(measure) })))
+            .selected(this.unitConverter.getCurrentMeasureIndex())
+            .value(this.getCurrentMeasureLabel())
+            .width('100%')
+            .height(52)
+            .font({ size: 18, weight: FontWeight.Medium })
+            .fontColor(INK)
+            .backgroundColor(SURFACE)
+            .borderRadius(16)
+            .accessibilityDescription($r('app.string.measure'))
             .onSelect((index: number) => {
               this.unitConverter.setMeasure(index);
             })
-            .margin(10)
-            .selected(this.unitConverter.getCurrentMeasureIndex())
-            .value(this.getCurrentMeasureLabel())
         }
         .width('100%')
-        .justifyContent(FlexAlign.Start)
-        Divider()
-        Row() {
-          Column() {
-            UnitSelector({
-              caption: $r('app.string.from'),
-              units: this.unitConverter.units,
-              value: this.unitConverter.sourceUnit,
-              onUnitChange: (() => {
-                this.unitConverter.convert();
-              })
-            })
-            TextInput({ text: this.unitConverter.value, placeholder: $r('app.string.conversion_prompt') })
-              .fontSize(CONVERSION_TEXT_FONT_SIZE)
-              .textAlign(TextAlign.End)
-              .placeholderColor(Color.Grey)
-              .placeholderFont({ size: CONVERSION_TEXT_FONT_SIZE })
-              .inputFilter(INPUT_REGEX_DIGITS_AND_DOT)
-              .fieldStyle()
-              .onChange((value: string) => this.onValueChange(value))
-            if (this.unitConverter.conversionError == ConversionError.InvalidValue) {
-              Text(this.resManager.getString($r('app.string.invalid_input_value')))
-                .width('80%')
-                .height(ERROR_MESSAGE_HEIGHT)
-                .textAlign(TextAlign.Center)
-                .fontColor(Color.White)
-                .backgroundColor(TEXT_INPUT_BORDER_COLOR)
-            } else {
-              Blank().height(ERROR_MESSAGE_HEIGHT)
-            }
-            UnitSelector({
-              caption: $r('app.string.to'),
-              units: this.unitConverter.units,
-              value: this.unitConverter.targetUnit,
-              onUnitChange: (() => {
-                this.unitConverter.convert();
-              })
-            })
-            Text(this.unitConverter.conversionResult)
-              .fontSize(CONVERSION_TEXT_FONT_SIZE)
-              .textAlign(TextAlign.End)
-              .fieldStyle()
-              .backgroundColor(0xD4EFFF)
+        .margin({ bottom: 24 })
+
+        Column() {
+          UnitSelector({
+            caption: $r('app.string.from'),
+            units: this.unitConverter.units,
+            value: this.unitConverter.sourceUnit,
+            onUnitChange: (): void => this.unitConverter.convert()
+          })
+          TextInput({ text: this.unitConverter.value, placeholder: $r('app.string.conversion_prompt') })
+            .type(InputType.NUMBER_DECIMAL)
+            .fontSize(28)
+            .fontColor(INK)
+            .textAlign(TextAlign.End)
+            .placeholderColor(SECONDARY_INK)
+            .placeholderFont({ size: 20 })
+            .inputFilter(INPUT_REGEX_SIGNED_DECIMAL)
+            .height(64)
+            .padding({ left: 16, right: 16 })
+            .backgroundColor(BACKGROUND)
+            .borderRadius(16)
+            .accessibilityDescription($r('app.string.input_value'))
+            .onChange((value: string) => this.onValueChange(value))
+          if (this.unitConverter.conversionError === ConversionError.InvalidValue) {
+            Text($r('app.string.invalid_input_value'))
+              .fontSize(14)
+              .fontColor(ERROR)
+              .width('100%')
+              .margin({ top: 10 })
           }
-          .width('80%')
-          Column() {
-            Image($r('app.media.up_down'))
-              .width(ICON_BUTTON_SIZE)
-              .height(ICON_BUTTON_SIZE)
-              .onClick(() => {
-                this.unitConverter.exchangeUnits()
-              })
-          }
-          .width('20%')
-          .alignItems(HorizontalAlign.End)
         }
         .width('100%')
-        .justifyContent(FlexAlign.Start)
+        .padding(20)
+        .backgroundColor(SURFACE)
+        .borderRadius(24)
+
+        Button() {
+          Image($r('app.media.up_down'))
+            .width(26)
+            .height(26)
+        }
+        .width(56)
+        .height(56)
+        .padding(0)
+        .backgroundColor(ACCENT)
+        .borderRadius(28)
+        .accessibilityText($r('app.string.swap_units'))
+        .margin({ top: 16, bottom: 16 })
+        .onClick((): void => this.unitConverter.exchangeUnits())
+
+        Column() {
+          UnitSelector({
+            caption: $r('app.string.to'),
+            units: this.unitConverter.units,
+            value: this.unitConverter.targetUnit,
+            onUnitChange: (): void => this.unitConverter.convert()
+          })
+          Text(this.unitConverter.conversionResult === '' ? '—' : this.unitConverter.conversionResult)
+            .fontSize(28)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(this.unitConverter.conversionResult === '' ? SECONDARY_INK : ACCENT)
+            .textAlign(TextAlign.End)
+            .width('100%')
+            .constraintSize({ minHeight: 64 })
+            .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+            .backgroundColor(BACKGROUND)
+            .borderRadius(16)
+            .accessibilityDescription($r('app.string.converted_value'))
+            .accessibilityLevel('yes')
+        }
+        .width('100%')
+        .padding(20)
+        .backgroundColor(SURFACE)
+        .borderRadius(24)
       }
-      .height('100%')
       .width('100%')
-      .padding(10)
-      .backgroundColor(0xE7f6FF)
+      .alignItems(HorizontalAlign.Center)
+      .padding({ left: 20, right: 20, top: 24, bottom: 32 })
     }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(BACKGROUND)
   }
 }
 
-@Styles function fieldStyle () {
-  .width('100%')
-  .height(52)
-  .padding({ right: 16 })
-  .border({
-    width: 2,
-    color: TEXT_INPUT_BORDER_COLOR,
-    radius: 20
-  })
-  .backgroundColor('#FFFFFF')
-}
-
-const INPUT_REGEX_DIGITS_AND_DOT = '[0-9.]';
-const ERROR_MESSAGE_HEIGHT = 20;
-const CONVERSION_TEXT_FONT_SIZE = 28;
-const ICON_BUTTON_SIZE = 48;
-const TEXT_INPUT_BORDER_COLOR = 0x2B7AFF;
+const INPUT_REGEX_SIGNED_DECIMAL = '^[0-9.-]*$';
+const BACKGROUND = 0xF8F3FF;
+const SURFACE = 0xFFFFFF;
+const INK = 0x0F0026;
+const SECONDARY_INK = 0x625A70;
+const ACCENT = 0x6024B5;
+const ERROR = 0xB4235A;

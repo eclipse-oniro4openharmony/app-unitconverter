@@ -1,131 +1,69 @@
-# Unit Converter application
-The Unit Converter application is a simple and intuitive tool designed to convert various units of measurement. It supports a wide range of unit categories, including length, weight, volume, temperature, and more. This application provides an easy-to-use interface for quick and accurate conversions, making it a valuable tool for students, professionals, and anyone needing unit conversions.
+# Unit Converter
 
-> [!note]
-This repository is under constant development/refactor since the project is designed to showcase the basics of Open Harmony development and is not intended for production use.
+An OpenHarmony example app for converting length, weight, volume, temperature, and pressure on a default-type device.
 
-## Currently supported measures and units
-1. **Length** - convertion between meter, kilometer,  mile, foot, inch.
-2. **Weight** - convertion between gram, kilogram, pound.
-3. **Volume** - convertion between liter, US gallon, UK gallon.
-4. **Temperature** - convertion between celsius, kelvin, fahrenheit.
-5. **Pressure** - convertion beetween pascal, bar, psi.
+## What this example demonstrates
 
-## Screenshot 
-Here is a screenshot showing the main view of the application: ![Sceenshot](./app_screenshot.jpg)
+| Capability | API or platform service | Where to look |
+| --- | --- | --- |
+| Select a category and source/target units | ArkUI `Select` | [Index.ets](entry/src/main/ets/pages/Index.ets), [UnitSelector.ets](entry/src/main/ets/components/UnitSelector.ets) |
+| Enter a signed decimal value and show the conversion | ArkUI `TextInput`, `@State`/`@Observed` state | [Index.ets](entry/src/main/ets/pages/Index.ets), [UnitConverterViewModel.ets](entry/src/main/ets/pages/viewmodels/UnitConverterViewModel.ets) |
+| Convert between five categories and format the result | Local conversion factories and formatter | [MeasureFactory.ts](entry/src/main/ets/feature/MeasureFactory.ts), [ConversionFormatter.ts](entry/src/main/ets/feature/ConversionFormatter.ts) |
+| Show English and Chinese labels | OpenHarmony string resources | [base strings](entry/src/main/resources/base/element/string.json), [Chinese strings](entry/src/main/resources/zh_CN/element/string.json) |
 
-## Usage
+Supported units: length (meter, kilometer, mile, foot, inch); weight (gram, kilogram, pound); volume (liter, US gallon, UK gallon); temperature (Celsius, Kelvin, Fahrenheit); and pressure (pascal, bar, psi).
 
-1. Open the application.
-2. Select the category of units you wish to convert (e.g., Length, Weight).
-3. Select the input unit
-4. Select the output unit 
-5. Enter the value to see the converted value in real-time.
+## Preview
 
-## How to extend the list of available measures by e.g. area
+![Unit Converter on an OpenHarmony phone, showing the category selector, conversion cards, and swap button](app_preview.jpg)
 
-1. Prepare the `enum` for the area units and store in `model/AreaUnit.ts`:
+## Requirements
 
-```
-export enum AreaUnit {
-    SquareMeater = 'square_meter',
-    Hectare = 'hectare',
-    ...
-}
+- Oniro App Builder (`@oniroproject/oniro-app`) 0.10.0, OpenHarmony SDK 6.1 (API 23), OpenHarmony command-line tools, and Java on `PATH`. The repository's CI uses Node.js 20 and JDK 17.
+- An OpenHarmony default-type device or emulator compatible with API 20 or later to run the HAP. The build targets API 23 and does not request permissions or use external services.
+- Local development signing. The generated certificate and profile are for development builds; release distribution needs its own signing setup.
 
-```
-2. Add `AreaUnits` to `Unit` type union in `model/Units.ts`:
-```
-export type Unit = LengthUnit | PressureUnit | TemperatureUnit | VolumeUnit  | WeightUnit | AreaUnit;
+## Build and run
+
+From the repository root, create a local profile once, generate development signing material, and build:
+
+```sh
+cp build-profile.example.json5 build-profile.json5
+oniro-app sign
+oniro-app build
 ```
 
-3. Prepare `MeasureFactory` implementation for area units convertion and save in `feature/AreaFactory.ts`:
-```
-function convertSquareMeterTo(unit: AreaUnit, value: number): number {
-    switch(unit) {
-        case AreaUnit.SquareMeater: return value;
-        case AreaUnit.Hectare: return ...;
-        ...
-    }
-}
+On PowerShell, use `Copy-Item build-profile.example.json5 build-profile.json5` for the first step. The profile and signing files are ignored by Git. Do not copy the example over an existing local signing profile.
 
-function convertHectareTo(unit: AreaUnit, value: number): number {
-    switch(unit) {
-        case AreaUnit.SquareMeater: return ...;
-        case AreaUnit.Hectare: return value;
-        ...
-    }
-}
+The signed HAP is `entry/build/default/outputs/default/entry-default-signed.hap`. With a compatible device or emulator connected, run `oniro-app app install` and `oniro-app app launch` from the repository root. These commands use the project manifest to select the HAP and launch `com.example.unitconverter`.
 
-type VolumeConverters = {
-  [key in AreaUnit]: (unit: AreaUnit, value: number) => number;
-};
+## Use
 
-const areaConverters: AreaConverters = {
-  square_meter: convertSquareMeterTo,
-  hectare: convertHectareTo,
-  ...
-}
+1. Open Unit Converter and select a category.
+2. Select the source and target units.
+3. Enter a value, including a negative or decimal value, to update the result.
+4. Tap the swap button to exchange the units and recalculate.
 
-export class AreaFactory implements MeasureFactory {
-  static create(): AreaFactory {
-    return new AreaFactory();
-  }
+## Explore the implementation
 
-  getUnits(): Unit[] {
-    return Object.values(AreaUnit);
-  }
+[EntryAbility.ts](entry/src/main/ets/entryability/EntryAbility.ts) opens the [Index.ets](entry/src/main/ets/pages/Index.ets) page. The page binds its controls to [UnitConverterViewModel.ets](entry/src/main/ets/pages/viewmodels/UnitConverterViewModel.ets), which selects a converter from [MeasureFactory.ts](entry/src/main/ets/feature/MeasureFactory.ts) and formats finite results with [ConversionFormatter.ts](entry/src/main/ets/feature/ConversionFormatter.ts). Category and unit labels are mapped in [MeasureLabels.ets](entry/src/main/ets/resources/MeasureLabels.ets) and [UnitLabels.ets](entry/src/main/ets/resources/UnitLabels.ets).
 
-  convert(fromUnit: Unit, toUnit: Unit, value: number): number {
-    return areaConverters[fromUnit as AreaUnit](toUnit as AreaeUnit, value);
-  }
-}
-```
+## Verify
 
-4. Extend `resources/measureFactories` map in `feature/MeasureFactory.ts`:
-```
-export const measureFactories: MeasureFactories = {
-  ...
-  area: () => AreaFactory.create()
-}
-```
-5. Add Area and area unit string labels in appropriate resource files (`string.json`):
-```
-{
-  "string": [
-    ...
-    { "name": "measure_area", "value": "Area" },
-    { "name": "unit_square_meter", "value": "Square meter [㎡]" },
-    { "name": "unit_hectare", "value": "Hectare [ha]" }
-  ]
-}
-```
-6. Add area label to `measureLabels` map in  `resources/measureLabels.ets`:
+After installing the HAP, manually select each category and confirm its listed units, enter a value and check that the result updates, then swap the units and confirm recalculation. Try a negative decimal, clear the input, and check that malformed input does not show a stale result. Check the labels and controls with a screen reader if accessibility is relevant to your device.
 
-```
-export const measureLabels = {
-  ...
-  area: $r('app.string.measure_area')
-};
-```
-7. Add area unit labels to `unitLabels` map in `resources/UnitLabels.ets`:
-```
-export const unitLabels = {
-  ...
-  square_meter: $r('app.string.unit_square_meter'),
-  hectare: $r('app.string.unit_hectare'),
-  ...
-};
-```
+With Node.js 24, the formatter also has a source-level check: `node --test tests/conversion-formatter.test.mjs`.
+
+## Limitations
+
+The app requests a decimal keyboard from the system, but the keyboard layout depends on the device's input method. You may need to enter or paste a minus sign or decimal point using that input method. Results are formatted to fit the result field, with up to eight decimal places.
 
 ## Contributing
 
-We welcome contributions from the community! If you have suggestions for improvements or new features, please submit a pull request or open an issue on GitHub.
+These apps are focused examples of specific platform capabilities. Contributions that keep an example correct, buildable, and clear are welcome, including bug fixes, documentation and setup corrections, and improvements to its existing behavior. Please keep pull requests within the app's stated purpose and describe how you verified the change.
+
+**Found a problem but can't fix it?** Open an issue in this repository; a pull request is not required. For a bug or broken build, include the steps to reproduce it, what you expected, what happened, and your device, OS, and SDK/API version. Logs or screenshots are helpful when available. You can also open an issue for inaccurate or unclear documentation.
 
 ## License
 
-This project is licensed under the Apache License version 2.0. See the [LICENSE](LICENSE) file for more details.
-
-## Contact
-
-For any questions or support, please contact us.
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
