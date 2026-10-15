@@ -6,11 +6,41 @@
     },
     {
       "name": "EntryAbility_desc",
-      "value": "description"
+      "value": "单位换算器"
     },
     {
       "name": "EntryAbility_label",
-      "value": "label"
-    }
+      "value": "单位换算器"
+    },
+    { "name": "measure", "value": "类别" },
+    { "name": "conversion_prompt", "value": "输入数值" },
+    { "name": "input_value", "value": "输入值" },
+    { "name": "converted_value", "value": "换算结果" },
+    { "name": "from", "value": "从" },
+    { "name": "to", "value": "到" },
+    { "name": "invalid_input_value", "value": "输入数值无效" },
+    { "name": "swap_units", "value": "交换单位" },
+    { "name": "measure_length", "value": "长度" },
+    { "name": "measure_pressure", "value": "压力" },
+    { "name": "measure_temperature", "value": "温度" },
+    { "name": "measure_volume", "value": "容积" },
+    { "name": "measure_weight", "value": "重量" },
+    { "name": "unit_meter", "value": "米 [m]" },
+    { "name": "unit_kilometer", "value": "千米 [km]" },
+    { "name": "unit_mile", "value": "英里 [mi]" },
+    { "name": "unit_foot", "value": "英尺 [ft]" },
+    { "name": "unit_inch", "value": "英寸 [in]" },
+    { "name": "unit_gram", "value": "克 [g]" },
+    { "name": "unit_kilogram", "value": "千克 [kg]" },
+    { "name": "unit_pound", "value": "磅 [lbs]" },
+    { "name": "unit_celsius", "value": "摄氏度 [℃]" },
+    { "name": "unit_kelvin", "value": "开尔文 [K]" },
+    { "name": "unit_fahrenheit", "value": "华氏度 [℉]" },
+    { "name": "unit_liter", "value": "升 [L,l]" },
+    { "name": "unit_gallon_us", "value": "美制加仑 [gal]" },
+    { "name": "unit_gallon_uk", "value": "英制加仑 [gal]" },
+    { "name": "unit_pascal", "value": "帕斯卡 [Pa]" },
+    { "name": "unit_bar", "value": "巴 [bar]" },
+    { "name": "unit_psi", "value": "磅力每平方英寸 [psi]" }
   ]
 }

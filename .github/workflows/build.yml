@@ -11,22 +11,37 @@ on:
 jobs:
   build:
     runs-on: oniro-runner
-    container:
-      image: francescopham/oniro-builder:6.0
-    env:
-      HOME: /root
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and sign app
-        run: |
-          cd "$GITHUB_WORKSPACE"
-          onirobuilder sign
-          onirobuilder build
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Upload built sample_app
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Oniro build tools
+        run: |
+          npm install -g @oniroproject/oniro-app@0.10.0
+          oniro-app sdk install 6.1
+          oniro-app cmdtools install
+
+      - name: Sign and build app
+        run: |
+          cp build-profile.example.json5 build-profile.json5
+          oniro-app sign
+          oniro-app build
+          test -f entry/build/default/outputs/default/entry-default-signed.hap
+
+      - name: Upload signed HAP
         uses: actions/upload-artifact@v4
         with:
-          name: HAP packages
-          path: entry/build/default/outputs/default
+          name: unitconverter-signed-hap
+          path: entry/build/default/outputs/default/entry-default-signed.hap
+          if-no-files-found: error

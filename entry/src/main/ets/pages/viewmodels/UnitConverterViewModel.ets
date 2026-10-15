@@ -21,13 +21,16 @@ export class UnitConverterViewModel {
   private measureFactory?: MeasureFactory;
   private measureIndex: number = 0;
   units: Unit[] = [];
-  sourceUnit!: MeasurementUnit;
-  targetUnit!: MeasurementUnit;
+  sourceUnit: MeasurementUnit;
+  targetUnit: MeasurementUnit;
   conversionResult: string = '';
   value: string = '';
   conversionError: ConversionError = ConversionError.None;
 
   constructor() {
+    const initialUnits: Unit[] = measureFactories[measures[0]]().getUnits();
+    this.sourceUnit = new MeasurementUnit(initialUnits[0]);
+    this.targetUnit = new MeasurementUnit(initialUnits[1]);
     this.setMeasure(0);
   }
 
@@ -66,19 +69,26 @@ export class UnitConverterViewModel {
   }
 
   convert() {
-    if (this.value == '') {
+    if (this.value === '' || this.value === '-' || this.value === '.' || this.value === '-.') {
       this.conversionResult = '';
+      this.conversionError = ConversionError.None;
     } else {
       const v = Number(this.value);
-      if (isNaN(v)) {
+      if (!SIGNED_DECIMAL_PATTERN.test(this.value) || !Number.isFinite(v)) {
         this.conversionResult = '';
         this.conversionError = ConversionError.InvalidValue;
       } else {
-        this.conversionResult = formatConversion(
-          this.measureFactory!.convert(this.sourceUnit.unit, this.targetUnit.unit, v)
-        );
-        this.conversionError = ConversionError.None;
+        const converted = this.measureFactory!.convert(this.sourceUnit.unit, this.targetUnit.unit, v);
+        if (!Number.isFinite(converted)) {
+          this.conversionResult = '';
+          this.conversionError = ConversionError.InvalidValue;
+        } else {
+          this.conversionResult = formatConversion(converted);
+          this.conversionError = ConversionError.None;
+        }
       }
     }
   }
 }
+
+const SIGNED_DECIMAL_PATTERN = /^-?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$/;
